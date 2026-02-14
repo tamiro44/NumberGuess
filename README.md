@@ -10,7 +10,7 @@ A slick, kid-friendly Hebrew number-guessing game built with React.
 
 ### נגד המחשב (Vs Computer)
 
-1. Think of a number between **0** and **100**.
+1. Think of a number between **0** and **100**
 2. The computer guesses — you respond:
    - **יותר** — your number is higher
    - **פחות** — your number is lower
