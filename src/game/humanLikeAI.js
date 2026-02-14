@@ -124,13 +124,20 @@ export function updateStateFromFeedback(state, feedback, guess) {
   const next = { ...state, guessCount: state.guessCount + 1, lastGuess: guess };
 
   if (feedback === 'higher') {
-    // The target is higher than our guess
     next.low = Math.max(state.low, guess + 1);
   } else if (feedback === 'lower') {
-    // The target is lower than our guess
     next.high = Math.min(state.high, guess - 1);
   }
   // 'correct' — no bounds update needed
+
+  // Clamp to valid game range [0, 100]
+  next.low = Math.max(0, Math.min(100, next.low));
+  next.high = Math.max(0, Math.min(100, next.high));
+
+  // Detect contradiction (impossible range)
+  if (next.low > next.high) {
+    next.invalid = true;
+  }
 
   return next;
 }
