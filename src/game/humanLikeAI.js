@@ -119,6 +119,7 @@ export function nextGuess(state) {
  * guess: the number that was just guessed
  *
  * Returns a new state object (immutable).
+ * If bounds become invalid (contradiction), sets state.invalid = true
  */
 export function updateStateFromFeedback(state, feedback, guess) {
   const next = { ...state, guessCount: state.guessCount + 1, lastGuess: guess };
@@ -131,6 +132,15 @@ export function updateStateFromFeedback(state, feedback, guess) {
     next.high = Math.min(state.high, guess - 1);
   }
   // 'correct' — no bounds update needed
+
+  // Clamp bounds to valid range [0, 100]
+  next.low = Math.max(0, Math.min(100, next.low));
+  next.high = Math.max(0, Math.min(100, next.high));
+
+  // Detect contradiction: if low > high, bounds became invalid
+  if (next.low > next.high) {
+    next.invalid = true;
+  }
 
   return next;
 }
