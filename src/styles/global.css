@@ -1,0 +1,159 @@
+@import './variables.css';
+
+/* ===== Reset & Base ===== */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--font-family);
+  background: linear-gradient(135deg, var(--color-bg-start), var(--color-bg-mid), var(--color-bg-end));
+  color: var(--color-text);
+  min-height: 100vh;
+  overflow-x: hidden;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/* ===== Animated Background Blobs ===== */
+.bg-animation {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.bg-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.35;
+  will-change: transform;
+}
+
+.bg-blob--1 {
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, #7c5cfc 0%, transparent 70%);
+  top: -10%;
+  right: -5%;
+  animation: blobFloat1 18s ease-in-out infinite;
+}
+
+.bg-blob--2 {
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, #f472b6 0%, transparent 70%);
+  bottom: -10%;
+  left: -5%;
+  animation: blobFloat2 22s ease-in-out infinite;
+}
+
+.bg-blob--3 {
+  width: 350px;
+  height: 350px;
+  background: radial-gradient(circle, #34d399 0%, transparent 70%);
+  top: 50%;
+  left: 40%;
+  animation: blobFloat3 20s ease-in-out infinite;
+}
+
+@keyframes blobFloat1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(-80px, 60px) scale(1.1); }
+  66% { transform: translate(40px, -40px) scale(0.95); }
+}
+
+@keyframes blobFloat2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(60px, -50px) scale(1.05); }
+  66% { transform: translate(-50px, 30px) scale(1.1); }
+}
+
+@keyframes blobFloat3 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(-40px, -60px) scale(1.15); }
+  66% { transform: translate(60px, 40px) scale(0.9); }
+}
+
+/* ===== Focus Styles ===== */
+:focus-visible {
+  outline: 3px solid var(--color-primary-light);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
+
+/* ===== Scrollbar ===== */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* ===== Screen Transitions ===== */
+.screen-enter {
+  animation: screenFadeIn 0.45s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes screenFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ===== Utility ===== */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* ===== Animations toggle ===== */
+.no-animations *,
+.no-animations *::before,
+.no-animations *::after {
+  animation-duration: 0s !important;
+  animation-delay: 0s !important;
+  transition-duration: 0s !important;
+  transition-delay: 0s !important;
+}

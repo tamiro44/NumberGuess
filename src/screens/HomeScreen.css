@@ -1,0 +1,181 @@
+/* ===== Home Screen ===== */
+.home {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 20px;
+  padding-top: calc(var(--topbar-height) + 24px);
+  min-height: 100vh;
+  position: relative;
+  z-index: 1;
+}
+
+/* Title area */
+.home__title-area {
+  text-align: center;
+  margin-bottom: 48px;
+}
+
+.home__title {
+  font-size: clamp(2.4rem, 7vw, 4rem);
+  font-weight: 900;
+  background: linear-gradient(135deg, #a78bfa 0%, #f472b6 50%, #fbbf24 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  line-height: 1.2;
+  margin-bottom: 12px;
+  animation: titlePulse 4s ease-in-out infinite;
+}
+
+@keyframes titlePulse {
+  0%, 100% { filter: brightness(1); transform: scale(1); }
+  50% { filter: brightness(1.15); transform: scale(1.02); }
+}
+
+.home__subtitle {
+  font-size: clamp(1rem, 3vw, 1.3rem);
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+/* Cards container */
+.home__cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 24px;
+  width: 100%;
+  max-width: 640px;
+}
+
+/* Mode card */
+.mode-card {
+  position: relative;
+  padding: 36px 28px;
+  border-radius: var(--radius-xl);
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-card-border);
+  box-shadow: var(--shadow-card);
+  cursor: pointer;
+  text-align: center;
+  transition:
+    transform var(--transition-spring),
+    box-shadow var(--transition-normal),
+    background var(--transition-normal),
+    border-color var(--transition-normal);
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+/* Glow layer behind card */
+.mode-card::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, var(--color-primary-glow), var(--color-accent-glow));
+  opacity: 0;
+  transition: opacity var(--transition-normal);
+  z-index: -1;
+  filter: blur(20px);
+}
+
+.mode-card:hover {
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: var(--shadow-card-hover);
+  background: var(--color-card-hover);
+  border-color: rgba(124, 92, 252, 0.3);
+}
+
+.mode-card:hover::before {
+  opacity: 1;
+}
+
+.mode-card:active {
+  transform: translateY(-2px) scale(0.98);
+}
+
+/* Tilt on desktop - handled via JS but define base */
+.mode-card--tilting {
+  transform-style: preserve-3d;
+  perspective: 800px;
+}
+
+/* Card inner elements */
+.mode-card__icon {
+  font-size: 3.5rem;
+  margin-bottom: 16px;
+  display: block;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+  transition: transform var(--transition-spring);
+}
+
+.mode-card:hover .mode-card__icon {
+  transform: scale(1.15) rotate(-5deg);
+}
+
+.mode-card__title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 8px;
+}
+
+.mode-card__desc {
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+/* Card-specific accent colors */
+.mode-card--pvp {
+  --card-accent: var(--color-primary);
+}
+
+.mode-card--ai {
+  --card-accent: var(--color-accent);
+}
+
+.mode-card--pvp:hover {
+  border-color: rgba(124, 92, 252, 0.4);
+}
+
+.mode-card--ai:hover {
+  border-color: rgba(244, 114, 182, 0.4);
+}
+
+/* Click ripple on card */
+.mode-card .card-ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  transform: scale(0);
+  animation: cardRipple 0.6s ease-out forwards;
+  pointer-events: none;
+}
+
+@keyframes cardRipple {
+  to {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 580px) {
+  .home__cards {
+    grid-template-columns: 1fr;
+    max-width: 360px;
+  }
+
+  .mode-card {
+    padding: 28px 22px;
+  }
+
+  .home__title-area {
+    margin-bottom: 36px;
+  }
+}
