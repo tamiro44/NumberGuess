@@ -555,6 +555,7 @@ function AIMode({ onBack, settings, onConfetti }) {
   const [thinkingDots, setThinkingDots] = useState('');
   const [showWinOverlay, setShowWinOverlay] = useState(false);
   const [winGuessCount, setWinGuessCount] = useState(0);
+  const [showInvalidOverlay, setShowInvalidOverlay] = useState(false);
 
   const [score, setScore] = useState({ playerWins: 0, aiWins: 0, aiGuessTotal: 0, aiRounds: 0 });
 
@@ -641,6 +642,14 @@ function AIMode({ onBack, settings, onConfetti }) {
       }
 
       const newState = updateStateFromFeedback(aiState, feedback, currentGuess);
+
+      // Check if bounds became invalid
+      if (newState.invalid) {
+        setShowInvalidOverlay(true);
+        setGamePhase('setup');
+        return;
+      }
+
       setAiState(newState);
 
       const delay = animationsOn ? getThinkingDelay() : 0;
@@ -676,6 +685,25 @@ function AIMode({ onBack, settings, onConfetti }) {
     setAiMessage('');
     setCurrentGuess(null);
     setGuessHistory([]);
+  }, []);
+
+  const handleResetAfterInvalid = useCallback(() => {
+    setShowInvalidOverlay(false);
+    setGamePhase('setup');
+    setAiMessage('');
+    setCurrentGuess(null);
+    setGuessHistory([]);
+    setAiState(null);
+  }, []);
+
+  const handleContinueAnywayAfterInvalid = useCallback(() => {
+    setShowInvalidOverlay(false);
+    setGamePhase('setup');
+    setAiMessage('');
+    setCurrentGuess(null);
+    setGuessHistory([]);
+    setAiState(null);
+    setScore((prev) => ({ ...prev, playerWins: prev.playerWins + 1 }));
   }, []);
 
   const avgGuesses =
@@ -765,7 +793,7 @@ function AIMode({ onBack, settings, onConfetti }) {
             <button
               className="feedback-btn feedback-btn--higher"
               onClick={(e) => { createBtnRipple(e); handleFeedback('higher'); }}
-              disabled={gamePhase === 'thinking'}
+              disabled={gamePhase === 'thinking' || currentGuess === 100}
               aria-label="המספר שלי גבוה יותר"
             >
               <span className="feedback-btn__arrow" aria-hidden="true">⬆</span>
@@ -783,7 +811,7 @@ function AIMode({ onBack, settings, onConfetti }) {
             <button
               className="feedback-btn feedback-btn--lower"
               onClick={(e) => { createBtnRipple(e); handleFeedback('lower'); }}
-              disabled={gamePhase === 'thinking'}
+              disabled={gamePhase === 'thinking' || currentGuess === 0}
               aria-label="המספר שלי נמוך יותר"
             >
               <span className="feedback-btn__arrow" aria-hidden="true">⬇</span>
@@ -837,6 +865,30 @@ function AIMode({ onBack, settings, onConfetti }) {
               </button>
               <button className="btn btn--ghost" onClick={onBack}>
                 ↩ חזרה לתפריט
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Invalid Bounds Overlay */}
+      {showInvalidOverlay && (
+        <div className="win-overlay" role="dialog" aria-modal="true" aria-label="סתירה בתשובות">
+          <div className="win-overlay__card screen-enter">
+            <div className="win-overlay__emoji">⚠️</div>
+            <h2 className="win-overlay__title">נראה שיש סתירה בתשובות</h2>
+            <p className="win-overlay__sub">
+              התשובות שנתתם סותרות זו את זו. למשל, אמרתם ״יותר״ כשהמספר היה 100, או ״פחות״ כשהיה 0.
+            </p>
+            <p className="win-overlay__sub">
+              רוצים לאפס את הסיבוב?
+            </p>
+            <div className="win-overlay__actions">
+              <button className="btn btn--primary btn--lg" onClick={handleResetAfterInvalid}>
+                🔄 איפוס סיבוב
+              </button>
+              <button className="btn btn--ghost" onClick={handleContinueAnywayAfterInvalid}>
+                ↩ המשך בכל זאת
               </button>
             </div>
           </div>
