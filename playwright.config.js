@@ -15,14 +15,14 @@ export default defineConfig({
     video: 'retain-on-failure',
     trace: 'retain-on-failure',
     launchOptions: {
-    slowMo: 500,
+      slowMo: 500,
+    },
   },
-  },
-  
+
   webServer: {
-  command: 'npm run dev -- --host 127.0.0.1 --port 5173',
-  url: 'http://127.0.0.1:5173',
-  reuseExistingServer: !process.env.CI,
-  timeout: 60000,
-}
+    command: 'npm run dev -- --host 127.0.0.1 --port 5173',
+    url: 'http://127.0.0.1:5173',
+    reuseExistingServer: !process.env.CI,
+    timeout: 60000,
+  },
 });
