@@ -1,16 +1,91 @@
-# React + Vite
+# NumberGuess 🎯 יותר / פחות / בדיוק
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A slick, kid-friendly Hebrew number-guessing game built with React.
 
-Currently, two official plugins are available:
+משחק ניחוש מספרים בעברית — עם ממשק מלוטש, אנימציות, ובינה מלאכותית שמרגישה כמו בן-אדם.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## React Compiler
+## 🎮 How to Play / איך משחקים?
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### נגד המחשב (Vs Computer)
 
-## Expanding the ESLint configuration
+1. Think of a number between **0** and **100**.
+2. The computer guesses — you respond:
+   - **יותר** — your number is higher
+   - **פחות** — your number is lower
+   - **בדיוק!** — correct guess
+3. Try to make the computer use as many guesses as possible!
+4. Choose a difficulty level: **קל** (Easy), **בינוני** (Medium), or **קשה** (Hard).
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### שני שחקנים (Two Players)
+
+> Coming soon — placeholder screen is in place.
+
+---
+
+## 🚀 Getting Started
+
+```bash
+# Install dependencies
+npm install
+
+# Start dev server
+npm run dev
+
+# Build for production
+npm run build
+
+# Preview production build
+npm run preview
+```
+
+---
+
+## 🛠 Tech Stack
+
+| Layer       | Technology             |
+| ----------- | ---------------------- |
+| Framework   | React 19               |
+| Build tool  | Vite 7                 |
+| Language    | JavaScript (ES modules)|
+| Styling     | Plain CSS + CSS vars   |
+| Fonts       | Rubik (Google Fonts)   |
+| Deployment  | GitHub Pages (CI/CD)   |
+
+Zero external runtime dependencies beyond React.
+
+---
+
+## 📁 Project Structure
+
+```
+src/
+├── components/       # Reusable UI (TopBar, Modal, Confetti, Settings)
+├── screens/          # HomeScreen, ModeScreen
+├── game/             # Pure game logic (humanLikeAI.js)
+└── styles/           # Global CSS + design tokens
+```
+
+---
+
+## 📸 Screenshots
+
+> Screenshots will be added to [`/public/screenshots/`](public/screenshots/).
+
+---
+
+## 🌐 RTL & Accessibility
+
+- Full **right-to-left** layout (`dir="rtl"` on `<html>`)
+- All visible text in **Hebrew**
+- Keyboard navigable with visible focus indicators
+- High-contrast colors on dark background
+- `aria-` labels on all interactive elements
+- Respects `prefers-reduced-motion` via animations toggle
+
+---
+
+## 📄 License
+
+[MIT](LICENSE)
