@@ -7,6 +7,7 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
   reporter: 'html',
+  timeout: 60000,
 
   use: {
     baseURL: 'http://localhost:5173',
@@ -14,8 +15,10 @@ export default defineConfig({
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
     trace: 'retain-on-failure',
+    actionTimeout: 10000,
+    navigationTimeout: 30000,
     launchOptions: {
-      slowMo: process.env.CI ? 0 : 500,
+      slowMo: process.env.CI ? 0 : 300,
     },
   },
 

@@ -799,7 +799,7 @@ function AIMode({ onBack, settings, onConfetti }) {
               onClick={(e) => { createBtnRipple(e); handleFeedback('higher'); }}
               disabled={gamePhase === 'thinking' || currentGuess === 100}
               aria-label="המספר שלי גבוה יותר"
-              data-testid="btn-higher-broken"
+              data-testid="btn-higher"
             >
               <span className="feedback-btn__arrow" aria-hidden="true">⬆</span>
               יותר
