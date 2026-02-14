@@ -745,6 +745,7 @@ function AIMode({ onBack, settings, onConfetti }) {
                 onClick={() => setDifficulty(opt.key)}
                 role="radio"
                 aria-checked={difficulty === opt.key}
+                data-testid={`difficulty-${opt.key}`}
               >
                 <span className="difficulty-btn__emoji" aria-hidden="true">{opt.emoji}</span>
                 <span>{opt.label}</span>
@@ -757,7 +758,7 @@ function AIMode({ onBack, settings, onConfetti }) {
           </p>
 
           <div className="mode-screen__actions">
-            <button className="btn btn--primary btn--lg" onClick={handleStart}>
+            <button className="btn btn--primary btn--lg" onClick={handleStart} data-testid="btn-start">
               <span aria-hidden="true">▶</span>
               התחלה
             </button>
@@ -783,7 +784,10 @@ function AIMode({ onBack, settings, onConfetti }) {
           </div>
 
           <div className="guess-display" role="region" aria-label="ניחוש נוכחי">
-            <div className={`guess-display__number ${gamePhase === 'thinking' ? 'guess-display__number--thinking' : ''}`}>
+            <div
+              className={`guess-display__number ${gamePhase === 'thinking' ? 'guess-display__number--thinking' : ''}`}
+              data-testid="ai-guess"
+            >
               {gamePhase === 'thinking' ? '?' : currentGuess}
             </div>
             <p className="guess-display__label">ניחוש מספר {guessHistory.length}</p>
@@ -795,6 +799,7 @@ function AIMode({ onBack, settings, onConfetti }) {
               onClick={(e) => { createBtnRipple(e); handleFeedback('higher'); }}
               disabled={gamePhase === 'thinking' || currentGuess === 100}
               aria-label="המספר שלי גבוה יותר"
+              data-testid="btn-higher"
             >
               <span className="feedback-btn__arrow" aria-hidden="true">⬆</span>
               יותר
@@ -804,6 +809,7 @@ function AIMode({ onBack, settings, onConfetti }) {
               onClick={(e) => { createBtnRipple(e); handleFeedback('correct'); }}
               disabled={gamePhase === 'thinking'}
               aria-label="ניחשת נכון"
+              data-testid="btn-exact"
             >
               <span className="feedback-btn__icon" aria-hidden="true">🎯</span>
               בדיוק!
@@ -813,6 +819,7 @@ function AIMode({ onBack, settings, onConfetti }) {
               onClick={(e) => { createBtnRipple(e); handleFeedback('lower'); }}
               disabled={gamePhase === 'thinking' || currentGuess === 0}
               aria-label="המספר שלי נמוך יותר"
+              data-testid="btn-lower"
             >
               <span className="feedback-btn__arrow" aria-hidden="true">⬇</span>
               פחות
@@ -873,7 +880,7 @@ function AIMode({ onBack, settings, onConfetti }) {
 
       {/* Invalid Bounds Overlay */}
       {showInvalidOverlay && (
-        <div className="win-overlay" role="dialog" aria-modal="true" aria-label="סתירה בתשובות">
+        <div className="win-overlay" role="dialog" aria-modal="true" aria-label="סתירה בתשובות" data-testid="overlay-contradiction">
           <div className="win-overlay__card screen-enter">
             <div className="win-overlay__emoji">⚠️</div>
             <h2 className="win-overlay__title">נראה שיש סתירה בתשובות</h2>
@@ -884,7 +891,7 @@ function AIMode({ onBack, settings, onConfetti }) {
               רוצים לאפס את הסיבוב?
             </p>
             <div className="win-overlay__actions">
-              <button className="btn btn--primary btn--lg" onClick={handleResetAfterInvalid}>
+              <button className="btn btn--primary btn--lg" onClick={handleResetAfterInvalid} data-testid="btn-reset-round">
                 🔄 איפוס סיבוב
               </button>
               <button className="btn btn--ghost" onClick={handleContinueAnywayAfterInvalid}>

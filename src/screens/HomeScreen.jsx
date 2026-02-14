@@ -77,6 +77,7 @@ export default function HomeScreen({ onSelectMode }) {
           onMouseMove={(e) => handleTilt(e, 0)}
           onMouseLeave={() => handleTiltReset(0)}
           aria-label="מצב שני שחקנים - אחד נגד אחד"
+          data-testid="mode-pvp"
         >
           <span className="mode-card__icon" aria-hidden="true">⚔️</span>
           <h2 className="mode-card__title">שני שחקנים (1 נגד 1)</h2>
@@ -94,6 +95,7 @@ export default function HomeScreen({ onSelectMode }) {
           onMouseMove={(e) => handleTilt(e, 1)}
           onMouseLeave={() => handleTiltReset(1)}
           aria-label="מצב נגד המחשב"
+          data-testid="mode-cpu"
         >
           <span className="mode-card__icon" aria-hidden="true">🤖</span>
           <h2 className="mode-card__title">נגד המחשב</h2>
