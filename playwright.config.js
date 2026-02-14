@@ -10,12 +10,12 @@ export default defineConfig({
 
   use: {
     baseURL: 'http://localhost:5173',
-    headless: false,
+    headless: !!process.env.CI,
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
     trace: 'retain-on-failure',
     launchOptions: {
-      slowMo: 500,
+      slowMo: process.env.CI ? 0 : 500,
     },
   },
 
