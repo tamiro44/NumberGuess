@@ -644,11 +644,7 @@ function AIMode({ onBack, settings, onConfetti }) {
       const newState = updateStateFromFeedback(aiState, feedback, currentGuess);
       setAiState(newState);
 
-      if (newState.invalid) {
-        setShowContradiction(true);
-        return;
-      }
-
+      // AI "thinks" then guesses
       const delay = animationsOn ? getThinkingDelay() : 0;
       if (animationsOn) {
         setGamePhase('thinking');
@@ -767,35 +763,36 @@ function AIMode({ onBack, settings, onConfetti }) {
             <p className="guess-display__label">ניחוש מספר {guessHistory.length}</p>
           </div>
 
-          <div className="feedback-buttons">
-            <button
-              className="feedback-btn feedback-btn--higher"
-              onClick={(e) => { createBtnRipple(e); handleFeedback('higher'); }}
-              disabled={gamePhase === 'thinking' || currentGuess === 100}
-              aria-label="המספר שלי גבוה יותר"
-            >
-              <span className="feedback-btn__arrow" aria-hidden="true">⬆</span>
-              יותר
-            </button>
-            <button
-              className="feedback-btn feedback-btn--correct"
-              onClick={(e) => { createBtnRipple(e); handleFeedback('correct'); }}
-              disabled={gamePhase === 'thinking'}
-              aria-label="ניחשת נכון"
-            >
-              <span className="feedback-btn__icon" aria-hidden="true">🎯</span>
-              בדיוק!
-            </button>
-            <button
-              className="feedback-btn feedback-btn--lower"
-              onClick={(e) => { createBtnRipple(e); handleFeedback('lower'); }}
-              disabled={gamePhase === 'thinking' || currentGuess === 0}
-              aria-label="המספר שלי נמוך יותר"
-            >
-              <span className="feedback-btn__arrow" aria-hidden="true">⬇</span>
-              פחות
-            </button>
-          </div>
+            {/* Feedback buttons */}
+            <div className="feedback-buttons">
+              <button
+                className="feedback-btn feedback-btn--higher"
+                onClick={(e) => { createBtnRipple(e); handleFeedback('higher'); }}
+                disabled={gamePhase === 'thinking'}
+                aria-label="המספר שלי גבוה יותר"
+              >
+                <span className="feedback-btn__arrow" aria-hidden="true">⬆</span>
+                יותר
+              </button>
+              <button
+                className="feedback-btn feedback-btn--correct"
+                onClick={(e) => { createBtnRipple(e); handleFeedback('correct'); }}
+                disabled={gamePhase === 'thinking'}
+                aria-label="ניחשת נכון"
+              >
+                <span className="feedback-btn__icon" aria-hidden="true">🎯</span>
+                בדיוק!
+              </button>
+              <button
+                className="feedback-btn feedback-btn--lower"
+                onClick={(e) => { createBtnRipple(e); handleFeedback('lower'); }}
+                disabled={gamePhase === 'thinking'}
+                aria-label="המספר שלי נמוך יותר"
+              >
+                <span className="feedback-btn__arrow" aria-hidden="true">⬇</span>
+                פחות
+              </button>
+            </div>
 
           {guessHistory.length > 0 && (
             <div className="guess-history">
@@ -828,56 +825,26 @@ function AIMode({ onBack, settings, onConfetti }) {
         </div>
       )}
 
-      {/* Win Overlay */}
-      {showWinOverlay && (
-        <div className="win-overlay" role="dialog" aria-modal="true" aria-label="המחשב ניצח">
-          <div className="win-overlay__card screen-enter">
-            <div className="win-overlay__emoji">😎</div>
-            <h2 className="win-overlay__title">המחשב ניצח!</h2>
-            <p className="win-overlay__sub">
-              ניחשתי ב-<strong>{winGuessCount}</strong> ניסיונות
-            </p>
-            <div className="win-overlay__actions">
-              <button className="btn btn--primary btn--lg" onClick={handlePlayAgain}>
-                🔄 שחקו שוב
-              </button>
-              <button className="btn btn--ghost" onClick={onBack}>
-                ↩ חזרה לתפריט
-              </button>
+        {/* Win Overlay */}
+        {showWinOverlay && (
+          <div className="win-overlay" role="dialog" aria-modal="true" aria-label="המחשב ניצח">
+            <div className="win-overlay__card screen-enter">
+              <div className="win-overlay__emoji">😎</div>
+              <h2 className="win-overlay__title">המחשב ניצח!</h2>
+              <p className="win-overlay__sub">
+                ניחשתי ב-<strong>{winGuessCount}</strong> ניסיונות
+              </p>
+              <div className="win-overlay__actions">
+                <button className="btn btn--primary btn--lg" onClick={handlePlayAgain}>
+                  🔄 שחקו שוב
+                </button>
+                <button className="btn btn--ghost" onClick={onBack}>
+                  ↩ חזרה לתפריט
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* Contradiction overlay */}
-      {showContradiction && (
-        <div className="win-overlay" role="dialog" aria-modal="true" aria-label="סתירה בתשובות">
-          <div className="win-overlay__card screen-enter">
-            <div className="win-overlay__emoji">🤔</div>
-            <h2 className="win-overlay__title">נראה שיש סתירה בתשובות</h2>
-            <p className="win-overlay__sub">רוצים לאפס את הסיבוב?</p>
-            <div className="win-overlay__actions">
-              <button
-                className="btn btn--primary btn--lg"
-                onClick={() => {
-                  setShowContradiction(false);
-                  handlePlayAgain();
-                }}
-              >
-                🔄 איפוס סיבוב
-              </button>
-              <button
-                className="btn btn--ghost"
-                onClick={() => {
-                  setShowContradiction(false);
-                }}
-              >
-                ▶ המשך בכל זאת
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+        )}
 
       {/* How to play modal */}
       {showHowTo && (
