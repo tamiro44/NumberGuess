@@ -47,7 +47,7 @@ function createBtnRipple(e) {
 function PvPMode({ onBack, settings, onConfetti }) {
   const animationsOn = settings?.animations !== false;
 
-  // Phases: setup | privacy | secret | handoff | guessing | win
+  // Phases: setup | privacy | secret | handoff | guessing | win | loss
   const [phase, setPhase] = useState('setup');
   const [showHowTo, setShowHowTo] = useState(false);
 
@@ -193,11 +193,19 @@ function PvPMode({ onBack, settings, onConfetti }) {
           [bestKey]: currentBest === null ? attempts : Math.min(currentBest, attempts),
         };
       });
+    } else if (newRange.low === newRange.high) {
+      // Range collapsed to a single number — guesser loses
+      setPhase('loss');
+      // Award chooser the win
+      setScore((prev) => {
+        const key = `p${chooser}Wins`;
+        return { ...prev, [key]: prev[key] + 1 };
+      });
     } else {
       // Re-focus input for next guess
       setTimeout(() => guessInputRef.current?.focus(), 50);
     }
-  }, [guessInput, secret, rangeLow, rangeHigh, guessHistory, guesser, onConfetti]);
+  }, [guessInput, secret, rangeLow, rangeHigh, guessHistory, guesser, chooser, onConfetti]);
 
   /* ——— play again (same roles) ——— */
   const handlePlayAgain = useCallback(() => {
@@ -520,6 +528,32 @@ function PvPMode({ onBack, settings, onConfetti }) {
         </div>
       )}
 
+      {/* ——— Phase: Loss (range collapsed) ——— */}
+      {phase === 'loss' && (
+        <div className="win-overlay win-overlay--loss" role="dialog" aria-modal="true" aria-label="הפסד" data-testid="overlay-loss">
+          <div className="win-overlay__card screen-enter">
+            <div className="win-overlay__emoji">😅</div>
+            <h2 className="win-overlay__title">{guesserLabel} הפסיד!</h2>
+            <p className="win-overlay__sub">
+              {chooserLabel} לכד את המנחש — נשארה רק אפשרות אחת!
+              <br />
+              המספר היה <strong>{secret}</strong>
+            </p>
+            <div className="win-overlay__actions">
+              <button className="btn btn--primary btn--lg" onClick={handlePlayAgain} data-testid="btn-reset-round">
+                🔄 שחקו שוב
+              </button>
+              <button className="btn btn--secondary" onClick={handleSwapAndPlay}>
+                🔁 החלף תפקידים
+              </button>
+              <button className="btn btn--ghost" onClick={onBack}>
+                ↩ חזרה לתפריט
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* How to play modal */}
       {showHowTo && (
         <Modal title="איך משחקים?" onClose={() => setShowHowTo(false)}>
@@ -556,6 +590,7 @@ function AIMode({ onBack, settings, onConfetti }) {
   const [showWinOverlay, setShowWinOverlay] = useState(false);
   const [winGuessCount, setWinGuessCount] = useState(0);
   const [showInvalidOverlay, setShowInvalidOverlay] = useState(false);
+  const [showLossOverlay, setShowLossOverlay] = useState(null);
 
   const [score, setScore] = useState({ playerWins: 0, aiWins: 0, aiGuessTotal: 0, aiRounds: 0 });
 
@@ -597,6 +632,7 @@ function AIMode({ onBack, settings, onConfetti }) {
     setCurrentGuess(null);
     setAiMessage('חשבו על מספר בין 0 ל-100...');
     setShowWinOverlay(false);
+    setShowLossOverlay(null);
     setGamePhase('playing');
 
     const delay = animationsOn ? getThinkingDelay() : 0;
@@ -650,6 +686,14 @@ function AIMode({ onBack, settings, onConfetti }) {
         return;
       }
 
+      // Check if range collapsed to a single number — AI loses
+      if (newState.collapsed) {
+        setShowLossOverlay(newState.low);
+        setGamePhase('setup');
+        setScore((prev) => ({ ...prev, playerWins: prev.playerWins + 1 }));
+        return;
+      }
+
       setAiState(newState);
 
       const delay = animationsOn ? getThinkingDelay() : 0;
@@ -681,6 +725,7 @@ function AIMode({ onBack, settings, onConfetti }) {
 
   const handlePlayAgain = useCallback(() => {
     setShowWinOverlay(false);
+    setShowLossOverlay(null);
     setGamePhase('setup');
     setAiMessage('');
     setCurrentGuess(null);
@@ -896,6 +941,27 @@ function AIMode({ onBack, settings, onConfetti }) {
               </button>
               <button className="btn btn--ghost" onClick={handleContinueAnywayAfterInvalid}>
                 ↩ המשך בכל זאת
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* AI Loss Overlay — range collapsed to one number */}
+      {showLossOverlay !== null && (
+        <div className="win-overlay win-overlay--loss" role="dialog" aria-modal="true" aria-label="המחשב הפסיד" data-testid="overlay-loss">
+          <div className="win-overlay__card screen-enter">
+            <div className="win-overlay__emoji">😅</div>
+            <h2 className="win-overlay__title">המחשב הפסיד!</h2>
+            <p className="win-overlay__sub">
+              נשארה רק אפשרות אחת (<strong>{showLossOverlay}</strong>) — אז המנחש מפסיד!
+            </p>
+            <div className="win-overlay__actions">
+              <button className="btn btn--primary btn--lg" onClick={handlePlayAgain} data-testid="btn-reset-round">
+                🔄 שחקו שוב
+              </button>
+              <button className="btn btn--ghost" onClick={onBack}>
+                ↩ חזרה לתפריט
               </button>
             </div>
           </div>
