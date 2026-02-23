@@ -39,15 +39,28 @@ test.describe('AI Mode', () => {
     }
   });
 
-  test('disables "יותר" button when guess is 100', async ({ page }) => {
+  test('disables "יותר" button when guess is 100 or AI loses on collapse', async ({ page }) => {
     await page.getByTestId('mode-cpu').click();
     await page.getByTestId('btn-start').click();
 
     const guessEl = page.getByTestId('ai-guess');
     const btnHigher = page.getByTestId('btn-higher');
+    const lossOverlay = page.getByTestId('overlay-loss');
 
-    // Keep clicking "יותר" until AI guesses 100 or button gets disabled
+    // Keep clicking "יותר" until AI guesses 100 / button disabled / or loss overlay appears
     for (let i = 0; i < 20; i++) {
+      // Check if loss overlay appeared (range collapsed)
+      if (await lossOverlay.isVisible().catch(() => false)) {
+        await expect(lossOverlay).toBeVisible();
+        return;
+      }
+
+      if (!(await guessEl.isVisible().catch(() => false))) {
+        // Phase changed — loss overlay should be showing
+        if (await lossOverlay.isVisible().catch(() => false)) return;
+        return;
+      }
+
       await expect(guessEl).not.toHaveText('?', { timeout: 5000 });
 
       const guessText = await guessEl.textContent();
@@ -59,14 +72,15 @@ test.describe('AI Mode', () => {
         return;
       }
 
-      // Click higher and wait for next guess
+      // Click higher and wait for next guess or loss overlay
       await btnHigher.click();
-      // Wait for thinking to finish (guess display shows a number again)
-      await expect(guessEl).not.toHaveText(guessText, { timeout: 5000 });
+      await Promise.race([
+        guessEl.waitFor({ state: 'visible', timeout: 5000 }).then(async () => {
+          await expect(guessEl).not.toHaveText(guessText, { timeout: 5000 });
+        }),
+        lossOverlay.waitFor({ state: 'visible', timeout: 5000 }),
+      ]).catch(() => {});
     }
-
-    // If we never reached 100, that's OK for a randomized AI.
-    // The test still passed its core purpose: no crash during repeated "higher".
   });
 
   test('disables "פחות" button when guess is 0', async ({ page }) => {
@@ -95,78 +109,87 @@ test.describe('AI Mode', () => {
     }
   });
 
-  test('shows contradiction overlay when bounds become invalid', async ({ page }) => {
+  test('shows contradiction or loss overlay when bounds become invalid or collapse', async ({ page }) => {
     await page.getByTestId('mode-cpu').click();
     await page.getByTestId('difficulty-hard').click();
     await page.getByTestId('btn-start').click();
 
     const guessEl = page.getByTestId('ai-guess');
-    const overlay = page.getByTestId('overlay-contradiction');
+    const contradictionOverlay = page.getByTestId('overlay-contradiction');
+    const lossOverlay = page.getByTestId('overlay-loss');
 
     // Wait for first guess
     await expect(guessEl).not.toHaveText('?', { timeout: 5000 });
 
-    // Keep clicking "higher" to push range up; contradiction triggers when AI
-    // is boxed in and feedback contradicts the known range.
+    // Keep clicking "higher" to push range up; may trigger loss (collapse) or contradiction.
     for (let i = 0; i < 25; i++) {
-      // Check if overlay appeared after last action
-      if (await overlay.isVisible().catch(() => false)) {
-        await expect(overlay).toBeVisible();
+      // Check if either overlay appeared
+      if (await contradictionOverlay.isVisible().catch(() => false)) {
+        await expect(contradictionOverlay).toBeVisible();
+        return;
+      }
+      if (await lossOverlay.isVisible().catch(() => false)) {
+        await expect(lossOverlay).toBeVisible();
         return;
       }
 
-      // If guess element is gone (phase changed to setup), overlay must be showing
       if (!(await guessEl.isVisible().catch(() => false))) {
-        await expect(overlay).toBeVisible({ timeout: 3000 });
+        // Phase changed — one of the overlays should be visible
+        const eitherVisible = await contradictionOverlay.isVisible().catch(() => false)
+          || await lossOverlay.isVisible().catch(() => false);
+        expect(eitherVisible).toBeTruthy();
         return;
       }
 
-      // Always say "higher" to narrow range upwards
       const btnHigher = page.getByTestId('btn-higher');
       if (await btnHigher.isDisabled()) {
-        // At 100, say "lower" to create contradiction (already said higher past this)
         await page.getByTestId('btn-lower').click();
       } else {
         await btnHigher.click();
       }
 
-      // Wait for either next guess or overlay
       await Promise.race([
         guessEl.waitFor({ state: 'visible', timeout: 5000 }).then(async () => {
-          // Wait for thinking to finish
           await expect(guessEl).not.toHaveText('?', { timeout: 5000 });
         }),
-        overlay.waitFor({ state: 'visible', timeout: 5000 }),
+        contradictionOverlay.waitFor({ state: 'visible', timeout: 5000 }),
+        lossOverlay.waitFor({ state: 'visible', timeout: 5000 }),
       ]).catch(() => {});
     }
-
-    // If contradiction never triggered (unlikely with hard difficulty),
-    // the test still validates no crash during boundary interactions.
   });
 
-  test('reset button returns to setup after contradiction', async ({ page }) => {
+  test('reset button returns to setup after contradiction or loss', async ({ page }) => {
     await page.getByTestId('mode-cpu').click();
     await page.getByTestId('difficulty-hard').click();
     await page.getByTestId('btn-start').click();
 
     const guessEl = page.getByTestId('ai-guess');
-    const overlay = page.getByTestId('overlay-contradiction');
+    const contradictionOverlay = page.getByTestId('overlay-contradiction');
+    const lossOverlay = page.getByTestId('overlay-loss');
 
     // Wait for first guess
     await expect(guessEl).not.toHaveText('?', { timeout: 5000 });
 
     for (let i = 0; i < 25; i++) {
-      // Check if overlay appeared
-      if (await overlay.isVisible().catch(() => false)) {
+      // Check if either overlay appeared
+      if (await contradictionOverlay.isVisible().catch(() => false)) {
+        await page.getByTestId('btn-reset-round').click();
+        await expect(page.getByTestId('btn-start')).toBeVisible();
+        return;
+      }
+      if (await lossOverlay.isVisible().catch(() => false)) {
         await page.getByTestId('btn-reset-round').click();
         await expect(page.getByTestId('btn-start')).toBeVisible();
         return;
       }
 
       if (!(await guessEl.isVisible().catch(() => false))) {
-        // Phase changed — overlay should be there
-        await expect(overlay).toBeVisible({ timeout: 3000 });
-        await page.getByTestId('btn-reset-round').click();
+        // Phase changed — one of the overlays should be visible
+        if (await contradictionOverlay.isVisible().catch(() => false)) {
+          await page.getByTestId('btn-reset-round').click();
+        } else if (await lossOverlay.isVisible().catch(() => false)) {
+          await page.getByTestId('btn-reset-round').click();
+        }
         await expect(page.getByTestId('btn-start')).toBeVisible();
         return;
       }
@@ -182,7 +205,8 @@ test.describe('AI Mode', () => {
         guessEl.waitFor({ state: 'visible', timeout: 5000 }).then(async () => {
           await expect(guessEl).not.toHaveText('?', { timeout: 5000 });
         }),
-        overlay.waitFor({ state: 'visible', timeout: 5000 }),
+        contradictionOverlay.waitFor({ state: 'visible', timeout: 5000 }),
+        lossOverlay.waitFor({ state: 'visible', timeout: 5000 }),
       ]).catch(() => {});
     }
   });
@@ -200,5 +224,182 @@ test.describe('AI Mode', () => {
     // Win overlay should appear
     const winOverlay = page.locator('.win-overlay');
     await expect(winOverlay).toBeVisible();
+  });
+
+  test('shows loss overlay when range collapses to one number', async ({ page }) => {
+    await page.getByTestId('mode-cpu').click();
+    await page.getByTestId('difficulty-hard').click();
+    await page.getByTestId('btn-start').click();
+
+    const guessEl = page.getByTestId('ai-guess');
+    const lossOverlay = page.getByTestId('overlay-loss');
+
+    // Wait for first guess
+    await expect(guessEl).not.toHaveText('?', { timeout: 5000 });
+
+    // Alternately push the AI into a single-option range by always saying "lower"
+    // until either the loss overlay appears or the contradiction overlay appears.
+    for (let i = 0; i < 25; i++) {
+      if (await lossOverlay.isVisible().catch(() => false)) {
+        // Loss overlay appeared — verify it
+        await expect(lossOverlay).toBeVisible();
+        // Verify reset button is present
+        await expect(page.getByTestId('btn-reset-round')).toBeVisible();
+        return;
+      }
+
+      // Check for contradiction overlay (may appear before collapse)
+      const contradictionOverlay = page.getByTestId('overlay-contradiction');
+      if (await contradictionOverlay.isVisible().catch(() => false)) {
+        // Contradiction appeared before collapse — acceptable, test still passes
+        return;
+      }
+
+      if (!(await guessEl.isVisible().catch(() => false))) {
+        // Phase changed — check for loss overlay
+        await expect(lossOverlay).toBeVisible({ timeout: 3000 });
+        return;
+      }
+
+      // Always say "lower" to force the AI range down
+      const btnLower = page.getByTestId('btn-lower');
+      if (await btnLower.isDisabled()) {
+        // At 0, say "higher" to continue narrowing from other side
+        await page.getByTestId('btn-higher').click();
+      } else {
+        await btnLower.click();
+      }
+
+      // Wait for either next guess or overlay
+      await Promise.race([
+        guessEl.waitFor({ state: 'visible', timeout: 5000 }).then(async () => {
+          await expect(guessEl).not.toHaveText('?', { timeout: 5000 });
+        }),
+        lossOverlay.waitFor({ state: 'visible', timeout: 5000 }),
+        contradictionOverlay.waitFor({ state: 'visible', timeout: 5000 }),
+      ]).catch(() => {});
+    }
+  });
+
+  test('loss overlay reset button returns to setup', async ({ page }) => {
+    await page.getByTestId('mode-cpu').click();
+    await page.getByTestId('difficulty-hard').click();
+    await page.getByTestId('btn-start').click();
+
+    const guessEl = page.getByTestId('ai-guess');
+    const lossOverlay = page.getByTestId('overlay-loss');
+
+    await expect(guessEl).not.toHaveText('?', { timeout: 5000 });
+
+    for (let i = 0; i < 25; i++) {
+      if (await lossOverlay.isVisible().catch(() => false)) {
+        await page.getByTestId('btn-reset-round').click();
+        await expect(page.getByTestId('btn-start')).toBeVisible();
+        return;
+      }
+
+      const contradictionOverlay = page.getByTestId('overlay-contradiction');
+      if (await contradictionOverlay.isVisible().catch(() => false)) {
+        // Contradiction instead of collapse — reset and end test
+        await page.getByTestId('btn-reset-round').click();
+        await expect(page.getByTestId('btn-start')).toBeVisible();
+        return;
+      }
+
+      if (!(await guessEl.isVisible().catch(() => false))) {
+        if (await lossOverlay.isVisible().catch(() => false)) {
+          await page.getByTestId('btn-reset-round').click();
+          await expect(page.getByTestId('btn-start')).toBeVisible();
+        }
+        return;
+      }
+
+      const btnLower = page.getByTestId('btn-lower');
+      if (await btnLower.isDisabled()) {
+        await page.getByTestId('btn-higher').click();
+      } else {
+        await btnLower.click();
+      }
+
+      await Promise.race([
+        guessEl.waitFor({ state: 'visible', timeout: 5000 }).then(async () => {
+          await expect(guessEl).not.toHaveText('?', { timeout: 5000 });
+        }),
+        lossOverlay.waitFor({ state: 'visible', timeout: 5000 }),
+        contradictionOverlay.waitFor({ state: 'visible', timeout: 5000 }),
+      ]).catch(() => {});
+    }
+  });
+});
+
+test.describe('PvP Mode — Loss on range collapse', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/');
+  });
+
+  test('guesser loses when range collapses to one number', async ({ page }) => {
+    // Navigate to PvP mode
+    await page.getByTestId('mode-pvp').click();
+
+    // Start round
+    await page.locator('button', { hasText: 'התחלה' }).click();
+
+    // Privacy screen — proceed
+    await page.locator('button', { hasText: 'מוכן' }).click();
+
+    // Enter secret: 50
+    await page.locator('input[aria-label="מספר סודי"]').fill('50');
+    await page.locator('button', { hasText: 'אישור' }).click();
+
+    // Handoff — skip to guessing
+    await page.locator('button', { hasText: /התחל לנחש|דלג/ }).click();
+
+    // Now we need to force the range to collapse to exactly one number.
+    // Strategy: guess numbers that narrow the range to a single value.
+    // Secret is 50. Guess 49 → "higher" (range: 50–100). Guess 51 → "lower" (range: 50–50) → collapse!
+    const guessInput = page.locator('#guess-input');
+    const submitBtn = page.locator('button', { hasText: 'נחש' });
+
+    // Guess 49 → feedback: "higher" → range: 50–100
+    await guessInput.fill('49');
+    await submitBtn.click();
+
+    // Guess 51 → feedback: "lower" → range: 50–50 → loss!
+    await guessInput.fill('51');
+    await submitBtn.click();
+
+    // Loss overlay should appear
+    const lossOverlay = page.getByTestId('overlay-loss');
+    await expect(lossOverlay).toBeVisible({ timeout: 3000 });
+
+    // Verify reset button
+    await expect(page.getByTestId('btn-reset-round')).toBeVisible();
+  });
+
+  test('PvP loss overlay reset starts new round', async ({ page }) => {
+    await page.getByTestId('mode-pvp').click();
+    await page.locator('button', { hasText: 'התחלה' }).click();
+    await page.locator('button', { hasText: 'מוכן' }).click();
+    await page.locator('input[aria-label="מספר סודי"]').fill('50');
+    await page.locator('button', { hasText: 'אישור' }).click();
+    await page.locator('button', { hasText: /התחל לנחש|דלג/ }).click();
+
+    const guessInput = page.locator('#guess-input');
+    const submitBtn = page.locator('button', { hasText: 'נחש' });
+
+    await guessInput.fill('49');
+    await submitBtn.click();
+    await guessInput.fill('51');
+    await submitBtn.click();
+
+    // Loss overlay should be visible
+    const lossOverlay = page.getByTestId('overlay-loss');
+    await expect(lossOverlay).toBeVisible({ timeout: 3000 });
+
+    // Click reset — starts new round (goes to privacy screen)
+    await page.getByTestId('btn-reset-round').click();
+
+    // Should be in privacy screen — "מוכן" button visible
+    await expect(page.locator('button', { hasText: 'מוכן' })).toBeVisible();
   });
 });

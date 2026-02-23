@@ -460,6 +460,21 @@
   align-items: center;
 }
 
+/* ===== Loss Overlay Variant ===== */
+.win-overlay--loss .win-overlay__title {
+  background: linear-gradient(135deg, #f87171, #f472b6);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.win-overlay--loss .win-overlay__card {
+  border-color: rgba(244, 114, 182, 0.3);
+  box-shadow:
+    0 24px 80px rgba(0, 0, 0, 0.5),
+    0 0 60px rgba(244, 114, 182, 0.15);
+}
+
 /* ===== Game board placeholder (PvP) ===== */
 .game-board {
   position: relative;

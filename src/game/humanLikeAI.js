@@ -142,6 +142,11 @@ export function updateStateFromFeedback(state, feedback, guess) {
     next.invalid = true;
   }
 
+  // Detect collapse: exactly one possible number remains
+  if (next.low === next.high) {
+    next.collapsed = true;
+  }
+
   return next;
 }
 
